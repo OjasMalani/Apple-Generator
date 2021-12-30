@@ -1,37 +1,72 @@
-noseX=0;
-noseY=0;
+x = 0;
+y = 0;
+screen_width= 0;
+screen_height= 0;
+
+draw_apple = "";
+apple= "";
+speak_data="";
+to_number=0;
 
 function preload() {
-    clown_nose= loadImage('https://i.postimg.cc/3x3QzSGq/m.png');
+apple= loadImage("apple.png")
+}
+
+var SpeechRecognition = window.webkitSpeechRecognition;
+  
+var recognition = new SpeechRecognition();
+
+function start()
+{
+  document.getElementById("status").innerHTML = "System is listening please speak";  
+  recognition.start();
+} 
+ 
+recognition.onresult = function(event) {
+
+ console.log(event); 
+
+ content = event.results[0][0].transcript;
+ 
+    document.getElementById("status").innerHTML = "The speech has been recognized: " + content; 
+    to_number= Number(content);
+    if(Number.isInteger(to_number)) {
+      document.getElementById("status").innerHTML="Started drawing apple";
+      draw_apple="set";
     }
-    
-    function setup() {
-        canvas= createCanvas(350,350);
-        canvas.center();
-        video=createCapture(VIDEO);
-        video.size(350,350);
-        video.hide();
-        poseNet= ml5.poseNet(video,modelLoaded);
-        poseNet.on('pose', gotPoses)
+    else{
+      document.getElementById("status").innerHTML="The speech has not recognized a number";
     }
-    
-    function draw() {
-        image(video,0,0,350,350);
-        image(clown_nose,noseX,noseY,80,35);
+}
+
+function setup() {
+ screen_width= window.innerWidth;
+ screen_height=window.innerHeight;
+ canvas= createCanvas(screen_width,screen_height-150);
+ canvas.position(0,150);
+}
+
+function draw() {
+  if(draw_apple == "set")
+  {
+    for(var i=1;i<=to_number;i++) {
+      x=Math.floor(Math.random()*1300);
+      y=Math.floor(Math.random()*700);
+      image(apple,x,y,50,50);
     }
-    
-    function take_snapshot() {
-        save('myfilterimage.png');
-    }
-    
-    function modelLoaded() {
-        console.log('Pose Net is Initialised')
-    }
-    
-    function gotPoses(results) {
-        if(results.length>0) {
-            console.log(results);
-            noseX= results[0].pose.nose.x-40;
-            noseY= results[0].pose.nose.y+10;
-        }
-    } 
+    document.getElementById("status").innerHTML = to_number + " Apples drawn";
+    speak_data= to_number+"Apples drawn";
+    speak();
+    draw_apple = "";
+  }
+}
+
+function speak(){
+    var synth = window.speechSynthesis;
+
+    var utterThis = new SpeechSynthesisUtterance(speak_data);
+
+    synth.speak(utterThis);
+
+    speak_data = "";
+}
